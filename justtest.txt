@@ -66,11 +66,11 @@ echo "keyboard-configuration keyboard-configuration/layout select 'USA'" | sudo 
 echo "keyboard-configuration keyboard-configuration/variant select 'USA'" | sudo debconf-set-selections
 
 
-wget https://dl.google.com/linux/direct/chrome-remote-desktop_current_amd64.deb -O /tmp/chrome-remote-desktop_current_amd64.deb
+wget https://dl.google.com/linux/direct/chrome-remote-desktop_current_amd64.deb -O chrome-remote-desktop_current_amd64.deb
 
-sudo gdebi /tmp/chrome-remote-desktop_current_amd64.deb -n
+sudo dpkg -i chrome-remote-desktop_current_amd64.deb && sudo apt-get -f install -y
 
-rm /tmp/chrome-remote-desktop_current_amd64.deb
+rm chrome-remote-desktop_current_amd64.deb
 sudo systemctl enable chrome-remote-desktop@$(whoami).service
 sudo systemctl start chrome-remote-desktop@$(whoami).service
 
