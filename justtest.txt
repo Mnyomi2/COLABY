@@ -49,8 +49,9 @@ sudo apt --fix-broken install -y -qq >/dev/null && sudo apt -qq update >/dev/nul
 
 
 #!/bin/bash
+sudo apt -qq update >/dev/null && sudo apt -qq upgrade -y >/dev/null
 
-sudo apt-get update && sudo apt-get install -y curl sudo ufw gdebi && sudo rm -rf /var/lib/apt/lists/*
+sudo apt-get install -y curl sudo ufw gdebi && sudo rm -rf /var/lib/apt/lists/*
 echo 'export DEBIAN_FRONTEND=noninteractive' >> ~/.bashrc
 source ~/.bashrc
 
@@ -58,7 +59,6 @@ export DEBIAN_FRONTEND=noninteractive
 echo "keyboard-configuration keyboard-configuration/layout select 'USA'" | sudo debconf-set-selections
 echo "keyboard-configuration keyboard-configuration/variant select 'USA'" | sudo debconf-set-selections
 
-sudo apt -qq update >/dev/null && sudo apt -qq upgrade -y >/dev/null
 
 wget https://dl.google.com/linux/direct/chrome-remote-desktop_current_amd64.deb -O /tmp/chrome-remote-desktop_current_amd64.deb
 
