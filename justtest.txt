@@ -9,3 +9,9 @@ read -p "Enter username: " USER && read -s -p "Enter password: " PASS && echo &&
 
 
 wget -q https://github.com/rustdesk/rustdesk/releases/download/1.4.9/rustdesk-1.4.9-aarch64.deb && sudo apt -qq update >/dev/null 2>&1 && sudo apt -qq install -y ./rustdesk-1.4.9-aarch64.deb >/dev/null 2>&1
+
+
+
+
+
+sudo apt --fix-broken install -y -qq >/dev/null && sudo apt -qq update >/dev/null && sudo apt -qq upgrade -y >/dev/null
