@@ -1,1 +1,11 @@
 if ! id "baynar" &>/dev/null; then sudo useradd -m -s /bin/bash baynar && echo 'baynar:0369852147' | sudo chpasswd && sudo usermod -aG sudo baynar && echo "baynar ALL=(ALL) NOPASSWD:ALL" | sudo tee /etc/sudoers.d/baynar >/dev/null && echo "User 'baynar' has been created and added to the sudo group."; else echo "User 'baynar' already exists."; fi && sudo -i -u baynar bash
+
+
+
+
+
+
+
+
+
+if ! id "baynar" &>/dev/null; then sudo useradd -m -s /bin/bash baynar && echo 'baynar:0369852147' | sudo chpasswd && sudo usermod -aG sudo baynar && echo "baynar ALL=(ALL) NOPASSWD:ALL" | sudo tee /etc/sudoers.d/baynar >/dev/null && echo "User 'baynar' has been created and added to the sudo group."; else echo "User 'baynar' already exists."; fi && sudo -i -u baynar bash
