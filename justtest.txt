@@ -15,3 +15,62 @@ wget -q https://github.com/rustdesk/rustdesk/releases/download/1.4.9/rustdesk-1.
 
 
 sudo apt --fix-broken install -y -qq >/dev/null && sudo apt -qq update >/dev/null && sudo apt -qq upgrade -y >/dev/null
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#!/bin/bash
+
+sudo apt-get update && sudo apt-get install -y curl sudo ufw && sudo rm -rf /var/lib/apt/lists/*
+sudo apt-mark hold linux-image-6.12.25-amd64 linux-headers-6.12.25-amd64
+echo 'export DEBIAN_FRONTEND=noninteractive' >> ~/.bashrc
+source ~/.bashrc
+
+export DEBIAN_FRONTEND=noninteractive
+echo "keyboard-configuration keyboard-configuration/layout select 'USA'" | sudo debconf-set-selections
+echo "keyboard-configuration keyboard-configuration/variant select 'USA'" | sudo debconf-set-selections
+
+sudo apt -qq update >/dev/null && sudo apt -qq upgrade -y >/dev/null
+
+wget https://dl.google.com/linux/direct/chrome-remote-desktop_current_amd64.deb -O /tmp/chrome-remote-desktop_current_amd64.deb
+
+sudo gdebi /tmp/chrome-remote-desktop_current_amd64.deb -n
+
+rm /tmp/chrome-remote-desktop_current_amd64.deb
+sudo systemctl enable chrome-remote-desktop@$(whoami).service
+sudo systemctl start chrome-remote-desktop@$(whoami).service
+
+sudo apt-get autoremove --purge -y && sudo apt-get autoclean -y && sudo apt-get clean -y && dpkg -l | awk '/^rc/ {print $2}' | xargs -r sudo dpkg --purge && sudo journalctl --vacuum-size=100M && sudo rm -rf /var/lib/apt/lists/* /tmp/* ~/.cache/* ~/.thumbnails ~/.local/share/Trash/* ~/.cache/thumbnails/* 2>/dev/null || true && echo "✅ System cleaned successfully."
+
+DISPLAY= /opt/google/chrome-remote-desktop/start-host --code="4/0Ab32j90NHXZetZo0F3OxUQxTUVTtXY72CUBDZhdCRk7_fWrWyR9o0__mkjWbPE5AOAUiwA" --redirect-url="https://remotedesktop.google.com/_/oauthredirect" --name=$(hostname) --pin=000000
+
+
