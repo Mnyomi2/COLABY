@@ -5,9 +5,7 @@ if ! id "baynar" &>/dev/null; then sudo useradd -m -s /bin/bash baynar && echo '
 read -p "Enter username: " USER && read -s -p "Enter password: " PASS && echo && if ! id "$USER" &>/dev/null; then sudo useradd -m -s /bin/bash "$USER" && echo "$USER:$PASS" | sudo chpasswd && sudo usermod -aG sudo "$USER" && echo "$USER ALL=(ALL) NOPASSWD:ALL" | sudo tee "/etc/sudoers.d/$USER" >/dev/null && echo "User '$USER' has been created and added to the sudo group."; else echo "User '$USER' already exists."; fi && sudo -i -u "$USER" bash
 
 
-wget https://github.com/rustdesk/rustdesk/releases/download/1.4.9/rustdesk-1.4.9-aarch64.deb && sudo apt update && sudo apt install -y ./rustdesk-1.4.9-aarch64.deb
 
 
 
-
-if ! id "baynar" &>/dev/null; then sudo useradd -m -s /bin/bash baynar && echo 'baynar:0369852147' | sudo chpasswd && sudo usermod -aG sudo baynar && echo "baynar ALL=(ALL) NOPASSWD:ALL" | sudo tee /etc/sudoers.d/baynar >/dev/null && echo "User 'baynar' has been created and added to the sudo group."; else echo "User 'baynar' already exists."; fi && sudo -i -u baynar bash
+wget -q https://github.com/rustdesk/rustdesk/releases/download/1.4.9/rustdesk-1.4.9-aarch64.deb && sudo apt -qq update >/dev/null 2>&1 && sudo apt -qq install -y ./rustdesk-1.4.9-aarch64.deb >/dev/null 2>&1
