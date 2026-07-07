@@ -50,7 +50,7 @@ sudo apt --fix-broken install -y -qq >/dev/null && sudo apt -qq update >/dev/nul
 
 #!/bin/bash
 
-sudo apt-get update && sudo apt-get install -y curl sudo ufw && sudo rm -rf /var/lib/apt/lists/*
+sudo apt-get update && sudo apt-get install -y curl sudo ufw gdebi && sudo rm -rf /var/lib/apt/lists/*
 echo 'export DEBIAN_FRONTEND=noninteractive' >> ~/.bashrc
 source ~/.bashrc
 
