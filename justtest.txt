@@ -8,6 +8,27 @@ read -p "Enter username: " USER && read -s -p "Enter password: " PASS && echo &&
 
 
 
+
+
+
+bash -c 'set -Eeuo pipefail; export DEBIAN_FRONTEND=noninteractive; command -v wget >/dev/null 2>&1 || { apt-get update -qq && apt-get install -y -qq wget >/dev/null 2>&1; }; A=$(dpkg --print-architecture); case "$A" in amd64) U=https://deb.anydesk.com/pool/main/a/anydesk/anydesk_8.0.4_amd64.deb;; i386) U=https://deb.anydesk.com/pool/main/a/anydesk/anydesk_6.0.1_i386.deb;; arm64) U=https://deb.anydesk.com/pool/main/a/anydesk/anydesk_8.0.4_arm64.deb;; armhf) U=https://deb.anydesk.com/pool/main/a/anydesk/anydesk_6.3.0_armhf.deb;; *) echo "Unsupported architecture: $A"; exit 1;; esac; F=$(basename "$U"); wget -q --show-progress -O "$F" "$U"; dpkg -i "$F" >/dev/null 2>&1 || true; apt-get install -f -y -qq >/dev/null 2>&1; echo "AnyDesk installation completed successfully."'
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 wget -q https://github.com/rustdesk/rustdesk/releases/download/1.4.9/rustdesk-1.4.9-aarch64.deb && sudo apt -qq update >/dev/null 2>&1 && sudo apt -qq install -y ./rustdesk-1.4.9-aarch64.deb >/dev/null 2>&1
 
 
