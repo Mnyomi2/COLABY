@@ -1,6 +1,6 @@
+cat > install_anydesk.sh <<'EOF'
 #!/usr/bin/env bash
 
-# Determine whether sudo is needed
 if [ "$EUID" -eq 0 ]; then
     SUDO=""
 else
@@ -9,14 +9,12 @@ fi
 
 echo "==> Installing AnyDesk..."
 
-# Install wget if missing
 if ! command -v wget >/dev/null 2>&1; then
     echo "Installing wget..."
     $SUDO apt-get update
     $SUDO apt-get install -y wget
 fi
 
-# Detect architecture
 ARCH="$(dpkg --print-architecture)"
 
 case "$ARCH" in
@@ -34,35 +32,29 @@ case "$ARCH" in
         ;;
     *)
         echo "Unsupported architecture: $ARCH"
-        read -rp "Press Enter to exit..."
         exit 1
         ;;
 esac
 
 FILE="/tmp/$(basename "$URL")"
 
-echo "Architecture : $ARCH"
-echo "Downloading..."
+echo "Downloading $FILE..."
+wget -c --tries=10 --timeout=30 -O "$FILE" "$URL" || exit 1
 
-if ! wget -c --tries=10 --timeout=30 -O "$FILE" "$URL"; then
-    echo
-    echo "Download failed."
-    read -rp "Press Enter to exit..."
-    exit 1
-fi
+echo "Installing..."
 
-echo "Installing package..."
-
-if ! $SUDO dpkg -i "$FILE"; then
+$SUDO dpkg -i "$FILE" || {
     echo "Fixing dependencies..."
     $SUDO apt-get update
     $SUDO apt-get install -fy
     $SUDO dpkg -i "$FILE"
-fi
+}
 
 echo
-echo "=============================="
-echo "AnyDesk installation complete."
-echo "=============================="
+echo "=================================="
+echo " AnyDesk installed successfully!"
+echo "=================================="
+EOF
 
-read -rp "Press Enter to close..."
+chmod +x install_anydesk.sh
+./install_anydesk.sh
