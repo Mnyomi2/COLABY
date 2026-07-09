@@ -1,22 +1,27 @@
 #!/usr/bin/env bash
-set -Eeuo pipefail
 
-export DEBIAN_FRONTEND=noninteractive
-
-# Install wget silently if missing
-if ! command -v wget >/dev/null 2>&1; then
-    apt-get update -qq
-    apt-get install -y -qq wget >/dev/null 2>&1
+# Determine whether sudo is needed
+if [ "$EUID" -eq 0 ]; then
+    SUDO=""
+else
+    SUDO="sudo"
 fi
 
+echo "==> Installing AnyDesk..."
+
+# Install wget if missing
+if ! command -v wget >/dev/null 2>&1; then
+    echo "Installing wget..."
+    $SUDO apt-get update
+    $SUDO apt-get install -y wget
+fi
+
+# Detect architecture
 ARCH="$(dpkg --print-architecture)"
 
 case "$ARCH" in
     amd64)
         URL="https://deb.anydesk.com/pool/main/a/anydesk/anydesk_8.0.4_amd64.deb"
-        ;;
-    i386)
-        URL="https://deb.anydesk.com/pool/main/a/anydesk/anydesk_6.0.1_i386.deb"
         ;;
     arm64)
         URL="https://deb.anydesk.com/pool/main/a/anydesk/anydesk_8.0.4_arm64.deb"
@@ -24,18 +29,40 @@ case "$ARCH" in
     armhf)
         URL="https://deb.anydesk.com/pool/main/a/anydesk/anydesk_6.3.0_armhf.deb"
         ;;
+    i386)
+        URL="https://deb.anydesk.com/pool/main/a/anydesk/anydesk_6.0.1_i386.deb"
+        ;;
     *)
         echo "Unsupported architecture: $ARCH"
+        read -rp "Press Enter to exit..."
         exit 1
         ;;
 esac
 
-FILE="$(basename "$URL")"
+FILE="/tmp/$(basename "$URL")"
 
-wget -q --show-progress -O "$FILE" "$URL"
+echo "Architecture : $ARCH"
+echo "Downloading..."
 
-dpkg -i "$FILE" >/dev/null 2>&1 || true
+if ! wget -c --tries=10 --timeout=30 -O "$FILE" "$URL"; then
+    echo
+    echo "Download failed."
+    read -rp "Press Enter to exit..."
+    exit 1
+fi
 
-apt-get install -f -y -qq >/dev/null 2>&1
+echo "Installing package..."
 
-echo "AnyDesk installation completed successfully."
+if ! $SUDO dpkg -i "$FILE"; then
+    echo "Fixing dependencies..."
+    $SUDO apt-get update
+    $SUDO apt-get install -fy
+    $SUDO dpkg -i "$FILE"
+fi
+
+echo
+echo "=============================="
+echo "AnyDesk installation complete."
+echo "=============================="
+
+read -rp "Press Enter to close..."
