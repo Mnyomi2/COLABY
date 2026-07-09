@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail
+
+export DEBIAN_FRONTEND=noninteractive
+
+# Install wget silently if missing
+if ! command -v wget >/dev/null 2>&1; then
+    apt-get update -qq
+    apt-get install -y -qq wget >/dev/null 2>&1
+fi
+
+ARCH="$(dpkg --print-architecture)"
+
+case "$ARCH" in
+    amd64)
+        URL="https://deb.anydesk.com/pool/main/a/anydesk/anydesk_8.0.4_amd64.deb"
+        ;;
+    i386)
+        URL="https://deb.anydesk.com/pool/main/a/anydesk/anydesk_6.0.1_i386.deb"
+        ;;
+    arm64)
+        URL="https://deb.anydesk.com/pool/main/a/anydesk/anydesk_8.0.4_arm64.deb"
+        ;;
+    armhf)
+        URL="https://deb.anydesk.com/pool/main/a/anydesk/anydesk_6.3.0_armhf.deb"
+        ;;
+    *)
+        echo "Unsupported architecture: $ARCH"
+        exit 1
+        ;;
+esac
+
+FILE="$(basename "$URL")"
+
+wget -q --show-progress -O "$FILE" "$URL"
+
+dpkg -i "$FILE" >/dev/null 2>&1 || true
+
+apt-get install -f -y -qq >/dev/null 2>&1
+
+echo "AnyDesk installation completed successfully."
