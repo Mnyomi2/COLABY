@@ -1,0 +1,72 @@
+cat > install_anydesk_local.sh <<'EOF'
+#!/usr/bin/env bash
+
+echo "==> Preparing local AnyDesk installation (current user only)..."
+
+ARCH="$(dpkg --print-architecture)"
+
+case "$ARCH" in
+    amd64)
+        URL="https://deb.anydesk.com/pool/main/a/anydesk/anydesk_8.0.4_amd64.deb"
+        ;;
+    arm64)
+        URL="https://deb.anydesk.com/pool/main/a/anydesk/anydesk_8.0.4_arm64.deb"
+        ;;
+    armhf)
+        URL="https://deb.anydesk.com/pool/main/a/anydesk/anydesk_6.3.0_armhf.deb"
+        ;;
+    i386)
+        URL="https://deb.anydesk.com/pool/main/a/anydesk/anydesk_6.0.1_i386.deb"
+        ;;
+    *)
+        echo "Unsupported architecture: $ARCH"
+        exit 1
+        ;;
+esac
+
+# Define local directories
+INSTALL_DIR="$HOME/.local/share/anydesk-local"
+BIN_DIR="$HOME/.local/bin"
+
+mkdir -p "$INSTALL_DIR"
+mkdir -p "$BIN_DIR"
+
+TEMP_FILE="/tmp/$(basename "$URL")"
+
+echo "Downloading package..."
+wget -c --tries=10 --timeout=30 -O "$TEMP_FILE" "$URL" || exit 1
+
+echo "Extracting files to $INSTALL_DIR..."
+# dpkg-deb extracts the archive without requiring root privileges
+dpkg-deb -x "$TEMP_FILE" "$INSTALL_DIR"
+
+# Create a symlink in the user's local bin folder
+ln -sf "$INSTALL_DIR/usr/bin/anydesk" "$BIN_DIR/anydesk"
+
+# Create a local desktop entry for the application menu
+mkdir -p "$HOME/.local/share/applications"
+cat <<DE_EOF > "$HOME/.local/share/applications/anydesk-local.desktop"
+[Desktop Entry]
+Name=AnyDesk (Local)
+Comment=AnyDesk Remote Desktop
+Exec=$INSTALL_DIR/usr/bin/anydesk %u
+Icon=$INSTALL_DIR/usr/share/icons/hicolor/scalable/apps/anydesk.svg
+Terminal=false
+Type=Application
+Categories=Network;
+DE_EOF
+
+# Clean up the downloaded deb file
+rm "$TEMP_FILE"
+
+echo
+echo "=================================================="
+echo " AnyDesk installed for current user successfully!"
+echo " "
+echo " You can run it by typing: ~/.local/bin/anydesk"
+echo " Or find 'AnyDesk (Local)' in your application menu."
+echo "=================================================="
+EOF
+
+chmod +x install_anydesk_local.sh
+./install_anydesk_local.sh
