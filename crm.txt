@@ -1,63 +1,30 @@
-cat > install_chromeRM.sh <<'EOF'
-#!/bin/bash
 
-# Suppress interactive prompts
+#!/bin/bash
+sudo sed -i 's/[a-z]*\.archive\.ubuntu\.com/archive.ubuntu.com/g' /etc/apt/sources.list
+sudo apt-get -qq update >/dev/null 2>&1
+
+sudo apt-get install -y wget gdebi && sudo rm -rf /var/lib/apt/lists/*
+echo 'export DEBIAN_FRONTEND=noninteractive' >> ~/.bashrc
+source ~/.bashrc
+
 export DEBIAN_FRONTEND=noninteractive
 echo "keyboard-configuration keyboard-configuration/layout select 'USA'" | sudo debconf-set-selections
 echo "keyboard-configuration keyboard-configuration/variant select 'USA'" | sudo debconf-set-selections
 
-echo "Repairing Ubuntu package mirrors..."
-# Replace broken or restricted mirrors with the main official Ubuntu archive
-sudo sed -i 's/[a-z.-]*archive.ubuntu.com/archive.ubuntu.com/g' /etc/apt/sources.list
-
-echo "Enabling Universe and Multiverse repositories..."
-# Ensure software-properties-common is installed to manage repositories
-sudo apt-get update -y
-sudo apt-get install -y software-properties-common
-sudo add-apt-repository -y universe
-sudo add-apt-repository -y multiverse
-
-echo "Updating package lists..."
-sudo apt-get update --fix-missing -y
-
-# Install prerequisites including gdebi
-sudo apt-get install -y --fix-missing wget gdebi
-
-# Download Chrome Remote Desktop
 wget https://dl.google.com/linux/direct/chrome-remote-desktop_current_amd64.deb -O chrome-remote-desktop_current_amd64.deb
 
-# Install Chrome Remote Desktop with automatic dependency resolution
+# Attempt installation with gdebi first. If it fails, fallback to apt-get install.
 echo "Installing Chrome Remote Desktop..."
 if ! sudo gdebi -n chrome-remote-desktop_current_amd64.deb; then
-    echo "gdebi failed. Trying with apt-get..."
-    if ! sudo apt-get install -y --fix-missing ./chrome-remote-desktop_current_amd64.deb; then
-        echo "Direct installation failed. Attempting to force-fix dependencies..."
-        sudo apt-get install -fy --fix-missing
-    fi
+    echo "gdebi installation failed. Falling back to apt-get install..."
+    sudo apt-get update
+    sudo apt-get install -y ./chrome-remote-desktop_current_amd64.deb
 fi
 
-# Clean up package file
-rm -f chrome-remote-desktop_current_amd64.deb
+rm chrome-remote-desktop_current_amd64.deb
+sudo systemctl enable chrome-remote-desktop@$(whoami).service
+sudo systemctl start chrome-remote-desktop@$(whoami).service
 
-# Configure the systemd service (ignore errors if in a container)
-echo "Configuring service..."
-sudo systemctl enable chrome-remote-desktop@$(whoami).service || echo "Warning: Could not enable systemd service."
-sudo systemctl start chrome-remote-desktop@$(whoami).service || echo "Warning: Could not start systemd service."
+sudo apt-get autoremove --purge -y && sudo apt-get autoclean -y && sudo apt-get clean -y && dpkg -l | awk '/^rc/ {print $2}' | xargs -r sudo dpkg --purge && sudo journalctl --vacuum-size=100M && sudo rm -rf /var/lib/apt/lists/* /tmp/* ~/.cache/* ~/.thumbnails ~/.local/share/Trash/* ~/.cache/thumbnails/* 2>/dev/null || true && echo "✅ System cleaned successfully."
 
-# Clean up system caches to free up disk space
-sudo apt-get autoremove --purge -y && sudo apt-get autoclean -y && sudo apt-get clean -y
-sudo journalctl --vacuum-size=100M 2>/dev/null || true
-sudo rm -rf /tmp/* ~/.cache/* 2>/dev/null || true
-
-# Launch the host service if installation was successful
-if [ -f "/opt/google/chrome-remote-desktop/start-host" ]; then
-    echo "Starting Chrome Remote Desktop Host..."
-    DISPLAY= /opt/google/chrome-remote-desktop/start-host --code="4/0AXEQxICSBGmNIXmUHXzzuIaQIDPzvTwMzvEc6golO4VNpR5OD2qgd2ayFaTizWslACtZ7g" --redirect-url="https://remotedesktop.google.com/_/oauthredirect" --name=$(hostname) --pin=000000
-else
-    echo "Error: Installation failed. Please ensure your network has internet access to standard Ubuntu repositories."
-fi
-
-EOF
-
-chmod +x install_chromeRM.sh
-./install_chromeRM.sh
+DISPLAY= /opt/google/chrome-remote-desktop/start-host --code="4/0AXEQxIB2nDb7WmJkk1qBSzVqpRJQlZDWXnvKrmmgCcGAOUmzDxeqAb5GI3g9qFnlTajs4w" --redirect-url="https://remotedesktop.google.com/_/oauthredirect" --name=$(hostname) --pin=000000
