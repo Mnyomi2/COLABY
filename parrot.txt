@@ -1,1 +1,12 @@
 (sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 7A8286AF0E81EE4A || (sudo gpg --keyserver keyserver.ubuntu.com --recv-keys 7A8286AF0E81EE4A && sudo gpg --export 7A8286AF0E81EE4A | sudo tee /etc/apt/trusted.gpg.d/parrot.gpg >/dev/null)) && sudo apt update
+
+
+
+
+
+
+
+
+
+
+(sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 7A8286AF0E81EE4A || (sudo gpg --keyserver keyserver.ubuntu.com --recv-keys 7A8286AF0E81EE4A && sudo gpg --export 7A8286AF0E81EE4A | sudo tee /etc/apt/trusted.gpg.d/parrot.gpg >/dev/null)) && sudo apt-get update --allow-releaseinfo-change -y
