@@ -1,5 +1,7 @@
 cat > install_chromeRM.sh <<'EOF'
 #!/bin/bash
+sudo sed -i 's/[a-z]*\.archive\.ubuntu\.com/archive.ubuntu.com/g' /etc/apt/sources.list
+
 #   sudo apt-get -qq update >/dev/null 2>&1 && sudo apt-get -qq upgrade -y >/dev/null 2>&1
 sudo apt-get -qq update >/dev/null 2>&1
 
