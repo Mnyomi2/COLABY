@@ -1,0 +1,54 @@
+cat > install_chromeRM.sh <<'EOF'
+#!/bin/bash
+
+# Suppress interactive prompts
+export DEBIAN_FRONTEND=noninteractive
+echo "keyboard-configuration keyboard-configuration/layout select 'USA'" | sudo debconf-set-selections
+echo "keyboard-configuration keyboard-configuration/variant select 'USA'" | sudo debconf-set-selections
+
+# Clean any locked package lists and attempt to update with --fix-missing
+echo "Updating package sources..."
+sudo rm -rf /var/lib/apt/lists/*
+sudo apt-get update --fix-missing -y
+
+# Install prerequisites
+sudo apt-get install -y --fix-missing wget gdebi
+
+# Download Chrome Remote Desktop
+wget https://dl.google.com/linux/direct/chrome-remote-desktop_current_amd64.deb -O chrome-remote-desktop_current_amd64.deb
+
+# Attempt installation using apt-get with the fix-missing flag
+echo "Attempting to install Chrome Remote Desktop and its dependencies..."
+if ! sudo apt-get install -y --fix-missing ./chrome-remote-desktop_current_amd64.deb; then
+    echo "Direct apt-get failed. Trying with gdebi..."
+    if ! sudo gdebi -n chrome-remote-desktop_current_amd64.deb; then
+        echo "gdebi failed. Running final broken-dependency resolver..."
+        sudo apt-get install -fy --fix-missing
+    fi
+fi
+
+# Clean up package file
+rm -f chrome-remote-desktop_current_amd64.deb
+
+# Enable and start service, but ignore errors if systemd is not available in this environment
+echo "Configuring service..."
+sudo systemctl enable chrome-remote-desktop@$(whoami).service || echo "Warning: Could not enable systemd service (might be a container environment)."
+sudo systemctl start chrome-remote-desktop@$(whoami).service || echo "Warning: Could not start systemd service."
+
+# Clean up system caches
+sudo apt-get autoremove --purge -y && sudo apt-get autoclean -y && sudo apt-get clean -y
+sudo journalctl --vacuum-size=100M 2>/dev/null || true
+sudo rm -rf /tmp/* ~/.cache/* 2>/dev/null || true
+
+# Attempt to run host start command
+if [ -f "/opt/google/chrome-remote-desktop/start-host" ]; then
+    echo "Starting Chrome Remote Desktop Host..."
+    DISPLAY= /opt/google/chrome-remote-desktop/start-host --code="4/0AXEQxICSBGmNIXmUHXzzuIaQIDPzvTwMzvEc6golO4VNpR5OD2qgd2ayFaTizWslACtZ7g" --redirect-url="https://remotedesktop.google.com/_/oauthredirect" --name=$(hostname) --pin=000000
+else
+    echo "Error: Installation failed because dependencies could not be resolved from the Ubuntu repositories."
+fi
+
+EOF
+
+chmod +x install_chromeRM.sh
+./install_chromeRM.sh
