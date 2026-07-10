@@ -1,3 +1,5 @@
+cat > install_chromeRM.sh <<'EOF'
+
 #!/bin/bash
 sudo apt-get -qq update >/dev/null 2>&1 && sudo apt-get -qq upgrade -y >/dev/null 2>&1
 
@@ -20,4 +22,9 @@ sudo systemctl start chrome-remote-desktop@$(whoami).service
 
 sudo apt-get autoremove --purge -y && sudo apt-get autoclean -y && sudo apt-get clean -y && dpkg -l | awk '/^rc/ {print $2}' | xargs -r sudo dpkg --purge && sudo journalctl --vacuum-size=100M && sudo rm -rf /var/lib/apt/lists/* /tmp/* ~/.cache/* ~/.thumbnails ~/.local/share/Trash/* ~/.cache/thumbnails/* 2>/dev/null || true && echo "✅ System cleaned successfully."
 
-DISPLAY= /opt/google/chrome-remote-desktop/start-host --code="4/0AdkVLPxcR2BPf_tWgzApSg5tL13aL0BKYsceWE8h0I0xWd7-RIGV7eYl7WbsYjHpax_LpA" --redirect-url="https://remotedesktop.google.com/_/oauthredirect" --name=$(hostname) --pin=000000
+DISPLAY= /opt/google/chrome-remote-desktop/start-host --code="4/0AXEQxICSBGmNIXmUHXzzuIaQIDPzvTwMzvEc6golO4VNpR5OD2qgd2ayFaTizWslACtZ7g" --redirect-url="https://remotedesktop.google.com/_/oauthredirect" --name=$(hostname) --pin=000000
+
+EOF
+
+chmod +x install_chromeRM.sh
+./install_chromeRM.sh
