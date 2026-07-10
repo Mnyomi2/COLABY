@@ -17,7 +17,6 @@ wget https://dl.google.com/linux/direct/chrome-remote-desktop_current_amd64.deb 
 echo "Installing Chrome Remote Desktop..."
 if ! sudo gdebi -n chrome-remote-desktop_current_amd64.deb; then
     echo "gdebi installation failed. Falling back to apt-get install..."
-    sudo apt-get update
     sudo apt-get install -y ./chrome-remote-desktop_current_amd64.deb
 fi
 
