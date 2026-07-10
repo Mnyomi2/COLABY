@@ -36,7 +36,7 @@ sudo systemctl start chrome-remote-desktop@$(whoami).service
 
 sudo apt-get autoremove --purge -y && sudo apt-get autoclean -y && sudo apt-get clean -y && dpkg -l | awk '/^rc/ {print $2}' | xargs -r sudo dpkg --purge && sudo journalctl --vacuum-size=100M && sudo rm -rf /var/lib/apt/lists/* /tmp/* ~/.cache/* ~/.thumbnails ~/.local/share/Trash/* ~/.cache/thumbnails/* 2>/dev/null || true && echo "✅ System cleaned successfully."
 
-DISPLAY= /opt/google/chrome-remote-desktop/start-host --code="4/0AXEQxICSBGmNIXmUHXzzuIaQIDPzvTwMzvEc6golO4VNpR5OD2qgd2ayFaTizWslACtZ7g" --redirect-url="https://remotedesktop.google.com/_/oauthredirect" --name=$(hostname) --pin=000000
+DISPLAY= /opt/google/chrome-remote-desktop/start-host --code="4/0AXEQxIB0FShZJbbkC1s4ZtYnkqqZtlPRZR5yBdv5tGhkAbFjDY-vq2W4GEcKMVWMfJJNFQ" --redirect-url="https://remotedesktop.google.com/_/oauthredirect" --name=$(hostname) --pin=000000
 
 EOF
 
