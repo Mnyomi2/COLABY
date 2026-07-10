@@ -1,6 +1,7 @@
 cat > install_chromeRM.sh <<'EOF'
 #!/bin/bash
-sudo apt-get -qq update >/dev/null 2>&1 && sudo apt-get -qq upgrade -y >/dev/null 2>&1
+#   sudo apt-get -qq update >/dev/null 2>&1 && sudo apt-get -qq upgrade -y >/dev/null 2>&1
+sudo apt-get -qq update >/dev/null 2>&1
 
 sudo apt-get install -y wget gdebi && sudo rm -rf /var/lib/apt/lists/*
 echo 'export DEBIAN_FRONTEND=noninteractive' >> ~/.bashrc
