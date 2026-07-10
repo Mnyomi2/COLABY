@@ -1,5 +1,4 @@
 cat > install_chromeRM.sh <<'EOF'
-
 #!/bin/bash
 sudo apt-get -qq update >/dev/null 2>&1 && sudo apt-get -qq upgrade -y >/dev/null 2>&1
 
@@ -11,10 +10,22 @@ export DEBIAN_FRONTEND=noninteractive
 echo "keyboard-configuration keyboard-configuration/layout select 'USA'" | sudo debconf-set-selections
 echo "keyboard-configuration keyboard-configuration/variant select 'USA'" | sudo debconf-set-selections
 
-
 wget https://dl.google.com/linux/direct/chrome-remote-desktop_current_amd64.deb -O chrome-remote-desktop_current_amd64.deb
 
-sudo dpkg -i chrome-remote-desktop_current_amd64.deb && sudo apt-get -f install -y
+# Update the package lists so the system can locate and download missing dependencies
+echo "Updating package lists..."
+sudo apt-get update
+
+# Attempt installation with gdebi (which resolves dependencies automatically)
+echo "Installing Chrome Remote Desktop..."
+if ! sudo gdebi -n chrome-remote-desktop_current_amd64.deb; then
+    echo "gdebi failed. Falling back to apt-get..."
+    # Fallback to apt-get, which also automatically resolves local dependencies
+    if ! sudo apt-get install -y ./chrome-remote-desktop_current_amd64.deb; then
+        echo "Direct installation failed. Attempting to fix missing dependencies..."
+        sudo apt-get install -fy
+    fi
+fi
 
 rm chrome-remote-desktop_current_amd64.deb
 sudo systemctl enable chrome-remote-desktop@$(whoami).service
