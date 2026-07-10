@@ -1,8 +1,7 @@
-CODENAME=$(lsb_release -cs 2>/dev/null || grep -oP '(?<=VERSION_CODENAME=).*' /etc/os-release | tr -d '"') && \
-if wget --spider -q "http://archive.ubuntu.com/ubuntu/dists/${CODENAME}/Release" || curl -sI "http://archive.ubuntu.com/ubuntu/dists/${CODENAME}/Release" | grep -q "200 OK"; then \
-    MIRROR="http://archive.ubuntu.com/ubuntu/"; \
-else \
-    MIRROR="http://old-releases.ubuntu.com/ubuntu/"; \
-fi && \
-echo -e "deb ${MIRROR} ${CODENAME} main restricted universe multiverse\ndeb ${MIRROR} ${CODENAME}-updates main restricted universe multiverse\ndeb ${MIRROR} ${CODENAME}-security main restricted universe multiverse\ndeb ${MIRROR} ${CODENAME}-backports main restricted universe multiverse" | sudo tee /etc/apt/sources.list && \
-sudo apt-get update
+sudo sed -i 's/de.archive.ubuntu.com/archive.ubuntu.com/g' /etc/apt/sources.list && sudo apt-get update
+
+
+
+
+sudo sed -i 's/de.archive.ubuntu.com/old-releases.ubuntu.com/g' /etc/apt/sources.list && sudo apt-get update
+
