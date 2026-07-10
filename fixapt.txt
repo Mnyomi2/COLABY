@@ -5,3 +5,6 @@ sudo sed -i 's/de.archive.ubuntu.com/archive.ubuntu.com/g' /etc/apt/sources.list
 
 sudo sed -i 's/de.archive.ubuntu.com/old-releases.ubuntu.com/g' /etc/apt/sources.list && sudo apt-get update
 
+
+
+sudo sed -i 's/old-releases.ubuntu.com/archive.ubuntu.com/g' /etc/apt/sources.list && sudo apt-get update
