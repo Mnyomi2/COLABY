@@ -1,64 +1,142 @@
 sudo bash -c '
-echo "⚙️ Starting Automatic Ventoy Downloader & GRUB Configurator..."
+# ==============================================================================
+# 💽 ULTIMATE LINUX ISO MANAGER & GRUB BOOTER
+# ==============================================================================
+
+TARGET_DIR="/live"
+CUSTOM_GRUB="/etc/grub.d/40_custom"
+
+# ⬇️ ADD NEW ISO URLS HERE IN THE FUTURE ⬇️
+# Just add a new line with "URL" inside the parentheses.
+ISO_URLS=(
+    "https://mirrors.cicku.me/linuxmint/iso/stable/22.3/linuxmint-22.3-cinnamon-64bit.iso"
+    "https://releases.ubuntu.com/26.04/ubuntu-26.04-desktop-amd64.iso"
+    "https://mirror.ueb.edu.ec/linuxliteos/isos/8.0/linux-lite-8.0-64bit.iso"
+)
+# ⬆️ ==================================== ⬆️
 
 # 1. Install wget if missing
 if ! command -v wget >/dev/null 2>&1; then
-    echo "⏳ Installing wget..."
+    echo "⏳ Installing required tools (wget)..."
     DEBIAN_FRONTEND=noninteractive apt-get -qq update && DEBIAN_FRONTEND=noninteractive apt-get -qq -y install wget
 fi
 
-# 2. Prepare Directory
-TARGET_DIR="/live"
 mkdir -p "$TARGET_DIR"
 
-# 3. Download VALID Ventoy ISO (Using stable v1.0.96)
-VERSION="1.0.96"
-ISO_URL="https://github.com/ventoy/Ventoy/releases/download/v${VERSION}/ventoy-${VERSION}-livecd.iso"
-ISO_PATH="$TARGET_DIR/ventoy-${VERSION}-livecd.iso"
-
-echo "⏳ Downloading Ventoy v${VERSION} LiveCD (This may take a moment)..."
-wget -q --show-progress "$ISO_URL" -O "$ISO_PATH"
-
-# SECURITY CHECK: Make sure the file actually downloaded and isn"t corrupted (must be >10MB)
-FILESIZE=$(stat -c%s "$ISO_PATH" 2>/dev/null || echo 0)
-if [ "$FILESIZE" -lt 10000000 ]; then
-    echo "❌ ERROR: Download failed! The URL might be wrong or your internet dropped."
-    rm -f "$ISO_PATH"
-    exit 1
-fi
-
-# 4. Unhide GRUB Menu
-echo "⚙️ Configuring GRUB to show the boot menu..."
+# Make GRUB visible
 sed -i "s/GRUB_TIMEOUT_STYLE=hidden/GRUB_TIMEOUT_STYLE=menu/g" /etc/default/grub
 sed -i "s/GRUB_TIMEOUT=0/GRUB_TIMEOUT=10/g" /etc/default/grub
 
-# 5. Backup and Generate Custom GRUB Entry
-CUSTOM_GRUB="/etc/grub.d/40_custom"
-if [ ! -f "${CUSTOM_GRUB}.bak" ]; then
-    cp "$CUSTOM_GRUB" "${CUSTOM_GRUB}.bak"
-fi
-
-echo "📝 Adding Ventoy to GRUB boot menu..."
-
-# Remove old auto-entries if they exist so we do not create duplicates
-sed -i "/# --- VENTOY AUTO ENTRY START ---/,/# --- VENTOY AUTO ENTRY END ---/d" "$CUSTOM_GRUB"
-
-# Add the new boot instructions with the correct tinycore paths
-cat <<EOF >> "$CUSTOM_GRUB"
-# --- VENTOY AUTO ENTRY START ---
-menuentry "Ventoy LiveCD Installer (v${VERSION})" {
-    set isofile="$ISO_PATH"
+# Function to safely rebuild GRUB based ONLY on what is currently inside /live
+rebuild_grub() {
+    echo "⚙️  Rebuilding GRUB menu entries..."
+    
+    # Remove old auto-generated block to prevent duplicates
+    sed -i "/# --- AUTO ISO ENTRIES START ---/,/# --- AUTO ISO ENTRIES END ---/d" "$CUSTOM_GRUB"
+    
+    echo "# --- AUTO ISO ENTRIES START ---" >> "$CUSTOM_GRUB"
+    
+    # Scan the folder and create a menu entry for every ISO found
+    for iso_path in "$TARGET_DIR"/*.iso; do
+        [ -e "$iso_path" ] || continue 
+        filename=$(basename "$iso_path")
+        
+        # Ubuntu, Mint, and Lite all use the "casper" boot system
+        cat <<EOF >> "$CUSTOM_GRUB"
+menuentry "Live ISO: $filename" {
+    set isofile="/live/$filename"
     search --no-floppy --file --set=root \$isofile
-    loopback loop (\$root)\$isofile
-    linux (loop)/boot/vmlinuz loglevel=3
-    initrd (loop)/boot/tinycore.gz
+    loopback loop \$isofile
+    linux (loop)/casper/vmlinuz boot=casper iso-scan/filename=\$isofile quiet splash ---
+    initrd (loop)/casper/initrd
 }
-# --- VENTOY AUTO ENTRY END ---
 EOF
+    done
+    echo "# --- AUTO ISO ENTRIES END ---" >> "$CUSTOM_GRUB"
+    
+    echo "🔄 Updating Bootloader..."
+    update-grub >/dev/null 2>&1
+    echo "✅ GRUB Updated successfully!"
+}
 
-# 6. Update GRUB
-echo "🔄 Updating GRUB Bootloader..."
-update-grub >/dev/null 2>&1
+# Main Menu Loop
+while true; do
+    echo ""
+    echo "=========================================="
+    echo "      💽 ISO MANAGER MAIN MENU"
+    echo "=========================================="
+    echo "1) 📥 Download & Add New ISO(s)"
+    echo "2) 🗑️  Delete Existing ISO(s)"
+    echo "3) ❌ Exit"
+    echo "=========================================="
+    read -p "Choose an option (1, 2, or 3): " main_choice
 
-echo "✅ SUCCESS! All done. Reboot your computer to see Ventoy in the boot menu."
+    case $main_choice in
+        1)
+            echo ""
+            echo "--- AVAILABLE ISOs ---"
+            for i in "${!ISO_URLS[@]}"; do
+                filename=$(basename "${ISO_URLS[$i]}")
+                echo "$((i+1))) $filename"
+            done
+            echo "----------------------"
+            read -p "Enter numbers to download (e.g., 1, or 1 2 3): " dl_choices
+            
+            for c in $dl_choices; do
+                idx=$((c-1))
+                if [ -n "${ISO_URLS[$idx]}" ]; then
+                    URL="${ISO_URLS[$idx]}"
+                    FILE_PATH="$TARGET_DIR/$(basename "$URL")"
+                    
+                    echo "⏳ Downloading $(basename "$URL")..."
+                    wget -q --show-progress "$URL" -O "$FILE_PATH"
+                    
+                    # Security check: Ensure it is a real file > 10MB (Catches 404 errors)
+                    FILESIZE=$(stat -c%s "$FILE_PATH" 2>/dev/null || echo 0)
+                    if [ "$FILESIZE" -lt 10000000 ]; then
+                        echo "❌ ERROR: Download failed or file does not exist yet. Deleting corrupted file."
+                        rm -f "$FILE_PATH"
+                    else
+                        echo "✅ Download complete!"
+                    fi
+                fi
+            done
+            rebuild_grub
+            ;;
+            
+        2)
+            echo ""
+            # Load existing ISOs into an array
+            existing_isos=( "$TARGET_DIR"/*.iso )
+            if [ ! -e "${existing_isos[0]}" ]; then
+                echo "⚠️  No ISOs found in $TARGET_DIR to delete."
+            else
+                echo "--- INSTALLED ISOs ---"
+                for i in "${!existing_isos[@]}"; do
+                    echo "$((i+1))) $(basename "${existing_isos[$i]}")"
+                done
+                echo "----------------------"
+                read -p "Enter numbers to DELETE (e.g., 1, or 1 2): " del_choices
+                
+                for c in $del_choices; do
+                    idx=$((c-1))
+                    if [ -n "${existing_isos[$idx]}" ]; then
+                        echo "🗑️  Deleting $(basename "${existing_isos[$idx]}")..."
+                        rm -f "${existing_isos[$idx]}"
+                    fi
+                done
+                rebuild_grub
+            fi
+            ;;
+            
+        3)
+            echo "👋 Exiting. Have a great day!"
+            break
+            ;;
+            
+        *)
+            echo "❌ Invalid choice. Please press 1, 2, or 3."
+            ;;
+    esac
+done
 '
