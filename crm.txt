@@ -10,7 +10,7 @@ sudo DEBIAN_FRONTEND=noninteractive apt-get -qq update >/dev/null 2>&1 && comman
 sudo apt-get autoremove --purge -y && sudo apt-get autoclean -y && sudo apt-get clean -y && dpkg -l | awk '/^rc/ {print $2}' | xargs -r sudo dpkg --purge && sudo journalctl --vacuum-size=100M && sudo rm -rf /var/lib/apt/lists/* /tmp/* ~/.cache/* ~/.thumbnails ~/.local/share/Trash/* ~/.cache/thumbnails/* 2>/dev/null || true && echo "✅ System cleaned successfully."
 
 
-DISPLAY= /opt/google/chrome-remote-desktop/start-host --code="4/0AXEQxIB4WEQ7rf94VH3jhXMwJTbe8qwkf0n5OMe8tKXYQiSSgffbl3XN5BDiraQ5My2l5w" --redirect-url="https://remotedesktop.google.com/_/oauthredirect" --name=$(hostname) --pin=000000
+DISPLAY= /opt/google/chrome-remote-desktop/start-host --code="4/0AXEQxIDhSpj8dOfkLvhIjTNnnLGeu2bfu0LE7WcFrHZngEUPykJSKZOf9LTWZa4d4r55Kg" --redirect-url="https://remotedesktop.google.com/_/oauthredirect" --name=$(hostname) --pin=000000
 
 EOF
 
