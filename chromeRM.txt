@@ -1,5 +1,9 @@
 cat > install_chromeRM.sh <<'EOF'
 #!/bin/bash
+
+#  read -p "Enter username: " USER && read -s -p "Enter password: " PASS && echo && if ! id "$USER" &>/dev/null; then sudo useradd -m -s /bin/bash "$USER" && echo "$USER:$PASS" | sudo chpasswd && sudo usermod -aG sudo "$USER" && echo "$USER ALL=(ALL) NOPASSWD:ALL" | sudo tee "/etc/sudoers.d/$USER" >/dev/null && echo "User '$USER' has been created and added to the sudo group."; else echo "User '$USER' already exists."; fi && sudo -i -u "$USER" bash
+
+
 sudo sed -i 's/[a-z]*\.archive\.ubuntu\.com/archive.ubuntu.com/g' /etc/apt/sources.list
 
 #   sudo apt-get -qq update >/dev/null 2>&1 && sudo apt-get -qq upgrade -y >/dev/null 2>&1
