@@ -4,8 +4,17 @@ sudo sed -i 's/[a-z]*\.archive\.ubuntu\.com/archive.ubuntu.com/g' /etc/apt/sourc
 
 
 
-sudo DEBIAN_FRONTEND=noninteractive apt-get -qq update >/dev/null 2>&1 && command -v wget >/dev/null 2>&1 || { sudo DEBIAN_FRONTEND=noninteractive apt-get -qq update >/dev/null 2>&1 && sudo DEBIAN_FRONTEND=noninteractive apt-get -qq -y install wget gdebi-core >/dev/null 2>&1; }; wget -q https://dl.google.com/linux/direct/chrome-remote-desktop_current_amd64.deb -O /tmp/chrome-remote-desktop_current_amd64.deb && (sudo gdebi -n /tmp/chrome-remote-desktop_current_amd64.deb >/dev/null 2>&1 || sudo DEBIAN_FRONTEND=noninteractive apt-get -y install /tmp/chrome-remote-desktop_current_amd64.deb >/dev/null 2>&1 || { sudo DEBIAN_FRONTEND=noninteractive apt-get -fy install >/dev/null 2>&1 && sudo DEBIAN_FRONTEND=noninteractive apt-get -y install /tmp/chrome-remote-desktop_current_amd64.deb >/dev/null 2>&1; }) && rm -f /tmp/chrome-remote-desktop_current_amd64.deb && sudo systemctl enable chrome-remote-desktop@"$(whoami)".service >/dev/null 2>&1 && sudo systemctl start chrome-remote-desktop@"$(whoami)".service >/dev/null 2>&1 && sudo rm -rf /var/lib/apt/lists/*
+echo -n "[Step 1/4] Checking dependencies... "
+if sudo DEBIAN_FRONTEND=noninteractive apt-get -qq update >/dev/null 2>&1 && command -v wget >/dev/null 2>&1 || { sudo DEBIAN_FRONTEND=noninteractive apt-get -qq update >/dev/null 2>&1 && sudo DEBIAN_FRONTEND=noninteractive apt-get -qq -y install wget gdebi-core >/dev/null 2>&1; }; then echo "✅ Success"; else echo "❌ Failed"; exit 1; fi
 
+echo -n "[Step 2/4] Downloading Chrome Remote Desktop... "
+if wget -q https://dl.google.com/linux/direct/chrome-remote-desktop_current_amd64.deb -O /tmp/chrome-remote-desktop_current_amd64.deb; then echo "✅ Success"; else echo "❌ Failed"; exit 1; fi
+
+echo -n "[Step 3/4] Installing package... "
+if (sudo gdebi -n /tmp/chrome-remote-desktop_current_amd64.deb >/dev/null 2>&1 || sudo DEBIAN_FRONTEND=noninteractive apt-get -y install /tmp/chrome-remote-desktop_current_amd64.deb >/dev/null 2>&1 || { sudo DEBIAN_FRONTEND=noninteractive apt-get -fy install >/dev/null 2>&1 && sudo DEBIAN_FRONTEND=noninteractive apt-get -y install /tmp/chrome-remote-desktop_current_amd64.deb >/dev/null 2>&1; }); then echo "✅ Success"; else echo "❌ Failed"; exit 1; fi
+
+echo -n "[Step 4/4] Starting service and cleaning up... "
+if rm -f /tmp/chrome-remote-desktop_current_amd64.deb && sudo systemctl enable chrome-remote-desktop@"$(whoami)".service >/dev/null 2>&1 && sudo systemctl start chrome-remote-desktop@"$(whoami)".service >/dev/null 2>&1 && sudo rm -rf /var/lib/apt/lists/*; then echo "✅ Success! All done."; else echo "❌ Failed"; fi
 
 sudo apt-get autoremove --purge -y && sudo apt-get autoclean -y && sudo apt-get clean -y && dpkg -l | awk '/^rc/ {print $2}' | xargs -r sudo dpkg --purge && sudo journalctl --vacuum-size=100M && sudo rm -rf /var/lib/apt/lists/* /tmp/* ~/.cache/* ~/.thumbnails ~/.local/share/Trash/* ~/.cache/thumbnails/* 2>/dev/null || true && echo "✅ System cleaned successfully."
 
