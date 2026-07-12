@@ -16,6 +16,7 @@ ISO_URLS=(
     "https://mirrors.cicku.me/linuxmint/iso/stable/22.3/linuxmint-22.3-cinnamon-64bit.iso"
     "https://releases.ubuntu.com/26.04/ubuntu-26.04-desktop-amd64.iso"
     "https://mirror.ueb.edu.ec/linuxliteos/isos/8.0/linux-lite-8.0-64bit.iso"
+    "https://archive.org/download/windows-10-2022-07-11-19-29-38/Win11PE%20-%20x64.ISO"
 )
 # ⬆️ ==================================== ⬆️
 
