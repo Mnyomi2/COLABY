@@ -11,12 +11,21 @@ fi
 TARGET_DIR="/live"
 mkdir -p "$TARGET_DIR"
 
-# 3. Download Ventoy ISO
-ISO_URL="https://github.com/ventoy/Ventoy/releases/download/v1.1.16/ventoy-1.1.16-livecd.iso"
-ISO_PATH="$TARGET_DIR/ventoy-1.1.16-livecd.iso"
+# 3. Download VALID Ventoy ISO (Using stable v1.0.96)
+VERSION="1.0.96"
+ISO_URL="https://github.com/ventoy/Ventoy/releases/download/v${VERSION}/ventoy-${VERSION}-livecd.iso"
+ISO_PATH="$TARGET_DIR/ventoy-${VERSION}-livecd.iso"
 
-echo "⏳ Downloading Ventoy LiveCD (This may take a moment)..."
+echo "⏳ Downloading Ventoy v${VERSION} LiveCD (This may take a moment)..."
 wget -q --show-progress "$ISO_URL" -O "$ISO_PATH"
+
+# SECURITY CHECK: Make sure the file actually downloaded and isn"t corrupted (must be >10MB)
+FILESIZE=$(stat -c%s "$ISO_PATH" 2>/dev/null || echo 0)
+if [ "$FILESIZE" -lt 10000000 ]; then
+    echo "❌ ERROR: Download failed! The URL might be wrong or your internet dropped."
+    rm -f "$ISO_PATH"
+    exit 1
+fi
 
 # 4. Unhide GRUB Menu
 echo "⚙️ Configuring GRUB to show the boot menu..."
@@ -34,15 +43,15 @@ echo "📝 Adding Ventoy to GRUB boot menu..."
 # Remove old auto-entries if they exist so we do not create duplicates
 sed -i "/# --- VENTOY AUTO ENTRY START ---/,/# --- VENTOY AUTO ENTRY END ---/d" "$CUSTOM_GRUB"
 
-# Add the new boot instructions
+# Add the new boot instructions with the correct tinycore paths
 cat <<EOF >> "$CUSTOM_GRUB"
 # --- VENTOY AUTO ENTRY START ---
-menuentry "Ventoy LiveCD Installer (v1.1.16)" {
+menuentry "Ventoy LiveCD Installer (v${VERSION})" {
     set isofile="$ISO_PATH"
     search --no-floppy --file --set=root \$isofile
-    loopback loop \$isofile
+    loopback loop (\$root)\$isofile
     linux (loop)/boot/vmlinuz loglevel=3
-    initrd (loop)/boot/core.gz
+    initrd (loop)/boot/tinycore.gz
 }
 # --- VENTOY AUTO ENTRY END ---
 EOF
