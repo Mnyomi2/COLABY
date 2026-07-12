@@ -1,0 +1,55 @@
+sudo bash -c '
+echo "⚙️ Starting Automatic Ventoy Downloader & GRUB Configurator..."
+
+# 1. Install wget if missing
+if ! command -v wget >/dev/null 2>&1; then
+    echo "⏳ Installing wget..."
+    DEBIAN_FRONTEND=noninteractive apt-get -qq update && DEBIAN_FRONTEND=noninteractive apt-get -qq -y install wget
+fi
+
+# 2. Prepare Directory
+TARGET_DIR="/live"
+mkdir -p "$TARGET_DIR"
+
+# 3. Download Ventoy ISO
+ISO_URL="https://github.com/ventoy/Ventoy/releases/download/v1.1.16/ventoy-1.1.16-livecd.iso"
+ISO_PATH="$TARGET_DIR/ventoy-1.1.16-livecd.iso"
+
+echo "⏳ Downloading Ventoy LiveCD (This may take a moment)..."
+wget -q --show-progress "$ISO_URL" -O "$ISO_PATH"
+
+# 4. Unhide GRUB Menu
+echo "⚙️ Configuring GRUB to show the boot menu..."
+sed -i "s/GRUB_TIMEOUT_STYLE=hidden/GRUB_TIMEOUT_STYLE=menu/g" /etc/default/grub
+sed -i "s/GRUB_TIMEOUT=0/GRUB_TIMEOUT=10/g" /etc/default/grub
+
+# 5. Backup and Generate Custom GRUB Entry
+CUSTOM_GRUB="/etc/grub.d/40_custom"
+if [ ! -f "${CUSTOM_GRUB}.bak" ]; then
+    cp "$CUSTOM_GRUB" "${CUSTOM_GRUB}.bak"
+fi
+
+echo "📝 Adding Ventoy to GRUB boot menu..."
+
+# Remove old auto-entries if they exist so we do not create duplicates
+sed -i "/# --- VENTOY AUTO ENTRY START ---/,/# --- VENTOY AUTO ENTRY END ---/d" "$CUSTOM_GRUB"
+
+# Add the new boot instructions
+cat <<EOF >> "$CUSTOM_GRUB"
+# --- VENTOY AUTO ENTRY START ---
+menuentry "Ventoy LiveCD Installer (v1.1.16)" {
+    set isofile="$ISO_PATH"
+    search --no-floppy --file --set=root \$isofile
+    loopback loop \$isofile
+    linux (loop)/boot/vmlinuz loglevel=3
+    initrd (loop)/boot/core.gz
+}
+# --- VENTOY AUTO ENTRY END ---
+EOF
+
+# 6. Update GRUB
+echo "🔄 Updating GRUB Bootloader..."
+update-grub >/dev/null 2>&1
+
+echo "✅ SUCCESS! All done. Reboot your computer to see Ventoy in the boot menu."
+'
