@@ -1,13 +1,17 @@
+
+sudo sed -i 's/[a-z]*\.archive\.ubuntu\.com/archive.ubuntu.com/g' /etc/apt/sources.list
+
+sudo apt-get -qq update >/dev/null 2>&1
+
 sudo bash -c '
 # ==============================================================================
-# 💽 ULTIMATE LINUX ISO MANAGER & GRUB BOOTER
+# 💽 ULTIMATE LINUX ISO MANAGER & GRUB BOOTER (TURBO SPEED)
 # ==============================================================================
 
 TARGET_DIR="/live"
 CUSTOM_GRUB="/etc/grub.d/40_custom"
 
 # ⬇️ ADD NEW ISO URLS HERE IN THE FUTURE ⬇️
-# Just add a new line with "URL" inside the parentheses.
 ISO_URLS=(
     "https://mirrors.cicku.me/linuxmint/iso/stable/22.3/linuxmint-22.3-cinnamon-64bit.iso"
     "https://releases.ubuntu.com/26.04/ubuntu-26.04-desktop-amd64.iso"
@@ -15,10 +19,10 @@ ISO_URLS=(
 )
 # ⬆️ ==================================== ⬆️
 
-# 1. Install wget if missing
-if ! command -v wget >/dev/null 2>&1; then
-    echo "⏳ Installing required tools (wget)..."
-    DEBIAN_FRONTEND=noninteractive apt-get -qq update && DEBIAN_FRONTEND=noninteractive apt-get -qq -y install wget
+# 1. Install aria2 for ultra-fast downloads if missing
+if ! command -v aria2c >/dev/null 2>&1; then
+    echo "⏳ Installing aria2 for Turbo Downloads..."
+    DEBIAN_FRONTEND=noninteractive apt-get -qq update && DEBIAN_FRONTEND=noninteractive apt-get -qq -y install aria2
 fi
 
 mkdir -p "$TARGET_DIR"
@@ -65,7 +69,7 @@ while true; do
     echo "=========================================="
     echo "      💽 ISO MANAGER MAIN MENU"
     echo "=========================================="
-    echo "1) 📥 Download & Add New ISO(s)"
+    echo "1) 🚀 Download & Add New ISO(s) (Aria2)"
     echo "2) 🗑️  Delete Existing ISO(s)"
     echo "3) ❌ Exit"
     echo "=========================================="
@@ -86,16 +90,20 @@ while true; do
                 idx=$((c-1))
                 if [ -n "${ISO_URLS[$idx]}" ]; then
                     URL="${ISO_URLS[$idx]}"
-                    FILE_PATH="$TARGET_DIR/$(basename "$URL")"
+                    FILENAME="$(basename "$URL")"
+                    FILE_PATH="$TARGET_DIR/$FILENAME"
                     
-                    echo "⏳ Downloading $(basename "$URL")..."
-                    wget -q --show-progress "$URL" -O "$FILE_PATH"
+                    echo "🚀 Downloading $FILENAME (Multi-thread Turbo)..."
+                    
+                    # Download using Aria2: 16 connections, 16 splits, 1MB min split size
+                    aria2c -x 16 -s 16 -k 1M -d "$TARGET_DIR" -o "$FILENAME" "$URL"
                     
                     # Security check: Ensure it is a real file > 10MB (Catches 404 errors)
                     FILESIZE=$(stat -c%s "$FILE_PATH" 2>/dev/null || echo 0)
                     if [ "$FILESIZE" -lt 10000000 ]; then
-                        echo "❌ ERROR: Download failed or file does not exist yet. Deleting corrupted file."
+                        echo "❌ ERROR: Download failed or URL does not exist. Deleting corrupted file."
                         rm -f "$FILE_PATH"
+                        rm -f "${FILE_PATH}.aria2" # Clean up aria2 temp file if it exists
                     else
                         echo "✅ Download complete!"
                     fi
@@ -121,7 +129,7 @@ while true; do
                 for c in $del_choices; do
                     idx=$((c-1))
                     if [ -n "${existing_isos[$idx]}" ]; then
-                        echo "🗑️  Deleting $(basename "${existing_isos[$idx]}")..."
+                        echo "🗑️  Deleting $(basename "${existing_isos[$idx]}")...."
                         rm -f "${existing_isos[$idx]}"
                     fi
                 done
