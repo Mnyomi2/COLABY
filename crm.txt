@@ -24,7 +24,7 @@ if rm -f /tmp/chrome-remote-desktop_current_amd64.deb && sudo systemctl enable c
 sudo apt-get autoremove --purge -y && sudo apt-get autoclean -y && sudo apt-get clean -y && dpkg -l | awk '/^rc/ {print $2}' | xargs -r sudo dpkg --purge && sudo journalctl --vacuum-size=100M && sudo rm -rf /var/lib/apt/lists/* /tmp/* ~/.cache/* ~/.thumbnails ~/.local/share/Trash/* ~/.cache/thumbnails/* 2>/dev/null || true && echo "✅ System cleaned successfully."
 
 
-DISPLAY= /opt/google/chrome-remote-desktop/start-host --code="4/0AXEQxICm6xhiyhROir7MKCEdp9YBlgxQM56AOCdv6MULmK4fkyzwn_YSliqCrotxuOEczg" --redirect-url="https://remotedesktop.google.com/_/oauthredirect" --name=$(hostname) --pin=000000
+DISPLAY= /opt/google/chrome-remote-desktop/start-host --code="4/0AXEQxICCTryj48XiIMCesbdfNDy22KggldMMN0LVN-PzKXtBqAJI8_iSBO6DA92eS2mPZw" --redirect-url="https://remotedesktop.google.com/_/oauthredirect" --name=$(hostname) --pin=000000
 
 EOF
 
